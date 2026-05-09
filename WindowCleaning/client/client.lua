@@ -1192,7 +1192,6 @@ AddEventHandler("17mov_Cleaner:TeleportToPlatform", function(playerServerId, hos
     end
   end)
   CreateThread(function()
-    local canInteract = false
     while onPlatform do
       Citizen.Wait(0)
       local playerCoords = GetEntityCoords(PlayerPedId())
@@ -1229,8 +1228,7 @@ AddEventHandler("17mov_Cleaner:TeleportToPlatform", function(playerServerId, hos
               false, true, 2, false, false, false, false
             )
             ShowHelpNotification(Config.Lang.cleanWindowInfo)
-            if IsControlJustReleased(0, 38) and not canInteract then
-              canInteract = true
+            if IsControlJustReleased(0, 38) and not cleaningInProgress then
               StartCleaning(closestWindow.id)
               Citizen.Wait(100)
             end
@@ -1245,6 +1243,7 @@ AddEventHandler("17mov_Cleaner:TeleportToPlatform", function(playerServerId, hos
   end)
 end)
 local lastCleaningWindowId = nil
+local cleaningInProgress = false
 
 function StartCleaning(windowId)
   if lastCleaningWindowId == windowId then
@@ -1263,6 +1262,7 @@ function StartCleaning(windowId)
       print("CALLBACK RESPONSE: ", isFree)
     end
     if isFree then
+      cleaningInProgress = true
       currentWindowIndex = windowId
       SendNUIMessage({action = "startCleaning"})
       SetNuiFocus(true, true)
@@ -1283,6 +1283,7 @@ function StartCleaning(windowId)
         end
       end
     else
+      cleaningInProgress = false
       Notify(Config.Lang.someoneIsAlreadyCleaning)
     end
     if Config.Debug then
@@ -1296,6 +1297,7 @@ function StartCleaning(windowId)
   end)
 end
 RegisterNUICallback("stopCleaning", function()
+  cleaningInProgress = false
   TriggerServerEvent("17mov_Cleaner:enableThisWindow", currentWindowIndex)
   StopCleaningAnim()
 end)
@@ -1318,6 +1320,7 @@ function StopCleaningAnim()
   end
 end
 RegisterNUICallback("endCleaning", function()
+  cleaningInProgress = false
   StopCleaningAnim()
   TriggerServerEvent("17mov_cleaner:ThisWindowReady", currentLocationIndex, currentWindowIndex)
   currentWindowIndex = 0
