@@ -882,7 +882,7 @@ AddEventHandler("17mov_cleaner:ThisWindowReady", function(locationIndex, windowI
     
     if windowCooldowns[sourceId] then
         local timePassed = os.time() - windowCooldowns[sourceId]
-        if timePassed < 5 then
+        if timePassed < 1 then
             return
         end
     end
